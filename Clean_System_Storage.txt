@@ -1,0 +1,37 @@
+# 清理脚本：Clean_System_Storage.ps1
+# 作者：ChatGPT 为用户定制
+# 功能：清理用户与系统临时文件、Windows 更新缓存、日志、NVIDIA 安装包、回收站等
+# 注意：需以管理员身份运行
+
+Write-Host "`n?? 正在执行系统清理任务，请稍候..." -ForegroundColor Cyan
+
+# 清除当前用户 Temp 文件
+Write-Host "?? 清理当前用户 TEMP..." -ForegroundColor Yellow
+Remove-Item "$env:TEMP\*" -Recurse -Force -ErrorAction SilentlyContinue
+
+# 清除系统级 Temp 文件
+Write-Host "?? 清理 Windows 系统 TEMP..." -ForegroundColor Yellow
+Remove-Item "C:\Windows\Temp\*" -Recurse -Force -ErrorAction SilentlyContinue
+
+# 清理 Windows 更新缓存
+Write-Host "?? 清理 Windows 更新缓存 SoftwareDistribution..." -ForegroundColor Yellow
+Stop-Service wuauserv -Force -ErrorAction SilentlyContinue
+Remove-Item "C:\Windows\SoftwareDistribution\Download\*" -Recurse -Force -ErrorAction SilentlyContinue
+Start-Service wuauserv -ErrorAction SilentlyContinue
+
+# 清理日志文件
+Write-Host "?? 清理 Windows 日志文件..." -ForegroundColor Yellow
+Remove-Item "C:\Windows\Logs\*" -Recurse -Force -ErrorAction SilentlyContinue
+
+# 清理 NVIDIA 安装缓存
+Write-Host "?? 清理 NVIDIA 缓存与安装包..." -ForegroundColor Yellow
+Remove-Item "C:\ProgramData\NVIDIA Corporation\Downloader\*" -Recurse -Force -ErrorAction SilentlyContinue
+Remove-Item "C:\NVIDIA\*" -Recurse -Force -ErrorAction SilentlyContinue
+
+# 清空回收站
+Write-Host "??? 清空回收站..." -ForegroundColor Yellow
+Clear-RecycleBin -Force -ErrorAction SilentlyContinue
+
+# 完成提示
+Write-Host "`n? 所有清理操作已完成！建议重启一次系统确认效果。" -ForegroundColor Green
+pause

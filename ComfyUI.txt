@@ -1,0 +1,90 @@
+
+
+---
+
+## ✅ 安装路径建议（C 盘）
+
+例如放在：
+
+```
+C:\ComfyUI\
+```
+
+或
+
+```
+C:\AI\ComfyUI\
+```
+
+尽量 **不要放在太深的路径里**（避免路径过长，出错如你之前遇到的 `0x80010135`）。
+
+---
+
+## ✅ 推荐操作步骤（Windows 安装流程）
+
+### 第 1 步：准备环境
+
+* 安装 [Python 3.10.x](https://www.python.org/downloads/release/python-31010/)（不要用3.11以上）
+* 安装 [Git](https://git-scm.com/)
+
+### 第 2 步：克隆 ComfyUI
+
+```bash
+git clone https://github.com/comfyanonymous/ComfyUI.git C:\ComfyUI
+```
+
+或者直接下载 ZIP 解压到 `C:\ComfyUI`
+
+---
+
+### 第 3 步：安装依赖
+
+在 `C:\ComfyUI` 下打开 CMD，输入：
+
+```bash
+python -m venv venv
+venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+---
+
+### 第 4 步：运行 ComfyUI
+
+```bash
+python main.py
+```
+
+---
+
+## ✅ 重要：避免 C 盘爆满的关键设置
+
+| 设置内容       | 操作方法                                                  |
+| ---------- | ----------------------------------------------------- |
+| **模型路径迁移** | 把 `ComfyUI\models` 指定到 D 盘或其他大空间盘，并修改配置或做软链接          |
+| **缓存清理**   | 定期清理 `output/` 与 `temp/` 文件夹                          |
+| **日志关闭**   | 在 config 中关闭过度调试日志（如启用了 batch 日志）                     |
+| **检查路径长度** | 确保不要放太多子目录，例如不要把 Comfy 放在 `C:\Users\你\Documents\AI\…` |
+
+---
+
+## ✅ 可选增强建议
+
+* 安装 `xformers` 以提速：
+
+  ```bash
+  pip install xformers --index-url https://download.pytorch.org/whl/cu118
+  ```
+
+* 设置 `.bat` 启动脚本，双击一键运行：
+
+  ```bat
+  @echo off
+  cd /d C:\ComfyUI
+  call venv\Scripts\activate
+  python main.py
+  ```
+
+---
+
+

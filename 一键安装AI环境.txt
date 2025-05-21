@@ -1,0 +1,132 @@
+
+
+# ✅ 一鍵搭建 AI 開發環境全流程（基於 Windows）
+
+## 🎯 目標組件：
+
+* ✅ 卸載 CUDA 12.9 / 不必要工具
+* ✅ 安裝 CUDA 11.8（GPU 驅動保留）
+* ✅ 安裝 Python 3.10（推薦官方）
+* ✅ 建立 PyTorch + TensorFlow GPU 支援虛擬環境
+* ✅ 測試 GPU 可用性與 cuDNN
+* ✅ 安裝 ComfyUI（支援自定義資料夾）
+
+---
+
+## 🧱 一、先決步驟（手動操作）：
+
+### ✅ Step 0：使用 [DDU 工具](https://www.guru3d.com/files-details/display-driver-uninstaller-download.html)
+
+* 重啟進入「安全模式」
+* 清除「NVIDIA CUDA Toolkit」與「Nsight 系列」
+* 勾選「保留顯卡驅動」（不要清除 GeForce 驅動）
+
+---
+
+## 🧩 二、自動安裝腳本架構（我將提供 `.bat` 和 `.py` 版本）
+
+### ✅ 整體腳本內容：
+
+| 項目     | 動作                            |
+| ------ | ----------------------------- |
+| Step 1 | 安裝 Python 3.10 並加 PATH        |
+| Step 2 | 建立虛擬環境 `venv_ai`              |
+| Step 3 | 安裝 PyTorch（CUDA 11.8 支援）      |
+| Step 4 | 安裝 TensorFlow（GPU 版本）         |
+| Step 5 | 驗證 GPU 可用性                    |
+| Step 6 | 安裝 ComfyUI 到指定資料夾（D:\ComfyUI） |
+| Step 7 | 顯示總結報告（GPU 啟用狀態、路徑等）          |
+
+---
+
+## 📦 我將提供以下檔案：
+
+1. `setup_ai_env.bat`：主腳本，安裝 Python + 建立 venv + 安裝 PyTorch + TensorFlow
+2. `gpu_test.py`：驗證 GPU 與 cuDNN 的小腳本
+3. `comfyui_installer.bat`：一鍵克隆 + 安裝 ComfyUI 到 D 盤
+4. \[可選] 壓縮包（含 Python 安裝器、CUDA 連結與 cuDNN 文件）
+
+---
+
+## ✅ 最佳安裝順序建議
+
+| 步驟  | 動作                         | 說明                                 |
+| --- | -------------------------- | ---------------------------------- |
+| 1️⃣ | DDU 清理                     | 保留顯示驅動，清理 Toolkit & Nsight         |
+| 2️⃣ | 安裝 CUDA 11.8               | 完整安裝，僅選 Toolkit / Runtime / cuBLAS |
+| 3️⃣ | 安裝 Python 3.10             | 官方安裝器，加入 PATH                      |
+| 4️⃣ | 執行 `setup_ai_env.bat`      | 建立虛擬環境 + 安裝 PyTorch & TensorFlow   |
+| 5️⃣ | 執行 `gpu_test.py`           | 確認 torch & tf GPU 可用性              |
+| 6️⃣ | 執行 `comfyui_installer.bat` | 安裝 ComfyUI，建立資料夾結構                 |
+| 7️⃣ | 測試 ComfyUI 是否正常啟動          | 啟動主程式，載入圖模型測試輸出                    |
+
+---
+
+📩 我將依據這個架構為你生成實際腳本，你只需提供以下資訊：
+
+1. 你是否已下載好 Python 3.10 安裝器？（是否需要我提供）
+2. 你想把 ComfyUI 安裝在哪個磁碟？（預設 `D:\ComfyUI`）
+3. 你是否希望所有環境都裝在虛擬環境中（不污染全域）？
+
+我收到這些資訊後，立即打包生成全套腳本給你。是否現在開始？
+
+非常明確！你要的是一個：
+
+> **最大限度利用 D:\ 作為主要安裝與運算空間，減少 C:\ 的壓力，提升 ComfyUI / AI 模型運算效率的環境結構。**
+
+---
+
+## ✅ 全盤規劃：D 盤為核心運行區
+
+### 📂 整體資料夾結構規劃（全部可自訂）
+
+| 目錄                   | 說明                             |
+| -------------------- | ------------------------------ |
+| `D:\AI\Python310`    | Python 安裝目錄（非預設裝在 C）           |
+| `D:\AI\envs\venv_ai` | 虛擬環境（專屬 PyTorch + TensorFlow）  |
+| `D:\AI\ComfyUI`      | ComfyUI 主程式與模型路徑               |
+| `D:\AI\models\sd1.5` | 模型目錄（避免寫入到 C:\Users\xxx.cache） |
+| `D:\AI\tmp`          | 替代 `%TEMP%`，避免 C:\AppData 膨脹   |
+| `D:\AI\logs`         | 記錄、測試與運行輸出集中儲存                 |
+
+---
+
+## ✅ 安裝策略與處理方式
+
+| 模塊                | 操作說明                                         |
+| ----------------- | -------------------------------------------- |
+| **Python**        | 直接安裝到 `D:\AI\Python310`，並設為全域 PATH           |
+| **虛擬環境 venv\_ai** | 建在 `D:\AI\envs\venv_ai`，所有 torch/tf 都裝這裡     |
+| **PyTorch / TF**  | 用 pip 安裝 CUDA 11.8 對應版，與 CUDA 環境連動           |
+| **ComfyUI**       | 克隆到 `D:\AI\ComfyUI`，指定模型輸出目錄到 `D:\AI\models` |
+| **CUDA Toolkit**  | 預設裝在 C，但體積小、運行效率最佳。可接受（不建議改動）                |
+| **cuDNN**         | 手動複製到 CUDA toolkit 目錄（C）                     |
+| **暫存與輸出重導**       | 改變 TEMP 路徑、ComfyUI 輸出與模型讀取路徑，統一在 D           |
+
+---
+
+## ✅ 下一步：我會幫你生成這些自動化腳本
+
+### 📁 包含內容
+
+1. `setup_python_310_to_D.bat`：自動安裝 Python 到 D:\AI\Python310
+2. `create_venv_and_install_ai.bat`：建立虛擬環境並安裝 PyTorch + TensorFlow
+3. `gpu_test.py`：一鍵測試 `torch` / `tf` 是否能啟用 GPU
+4. `install_comfyui_to_D.bat`：自動克隆並配置 ComfyUI + 重導模型目錄
+5. `set_user_temp_to_D.bat`：將 `%TEMP%` 移動到 `D:\AI\tmp`
+6. \[可選] `clear_C_cache.bat`：移除常見 CUDA / torch cache
+
+---
+
+請你幫我確認以下幾點，即刻生成腳本給你：
+
+1. ✅ 你希望 Python 安裝在：`D:\AI\Python310`？
+2. ✅ 虛擬環境目錄：`D:\AI\envs\venv_ai`？
+3. ✅ ComfyUI 主資料夾與模型：`D:\AI\ComfyUI`、`D:\AI\models`？
+4. ✅ TEMP 目錄改為：`D:\AI\tmp`？
+5. ✅ 你希望安裝的 PyTorch 對應 CUDA 是：11.8？
+
+---
+
+我收到後，將一次性給你全套可執行 `.bat` + `.py` 包。是否現在生成？
+

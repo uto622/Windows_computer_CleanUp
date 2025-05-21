@@ -1,0 +1,108 @@
+https://chatgpt.com/canvas/shared/68233755ba4c8191912997ae93dff119
+
+:: ✅ SETUP_AI_ENV.BAT — 全自動 AI 環境搭建腳本 for D: Drive
+:: 作者：ChatGPT（為用戶定制）
+
+@echo off
+setlocal EnableDelayedExpansion
+
+:: === 用戶定義變數 ===
+set PYTHON_DIR=D:\AI\Python310
+set VENV_DIR=D:\AI\envs\venv_ai
+set COMFY_DIR=D:\AI\ComfyUI
+set MODEL_DIR=D:\AI\models
+set TEMP_DIR=D:\AI\tmp
+set CHECKPOINT_DIR=%COMFY_DIR%\models\checkpoints
+
+:: === 創建目錄結構 ===
+echo ✅ 建立資料夾...
+mkdir "%PYTHON_DIR%"
+mkdir "%VENV_DIR%"
+mkdir "%COMFY_DIR%"
+mkdir "%MODEL_DIR%"
+mkdir "%TEMP_DIR%"
+mkdir "%CHECKPOINT_DIR%"
+mkdir "%MODEL_DIR%\torch_cache"
+mkdir "D:\AI\logs"
+
+:: === 安裝 Python 3.10 到 D 盤（需手動下載安裝器） ===
+echo ✅ 請下載 python-3.10.x-amd64.exe 並安裝至: %PYTHON_DIR%
+echo ✅ 務必勾選 Add to PATH，或安裝後再手動設置 PATH
+pause
+
+:: === 建立虛擬環境並啟用 ===
+echo ✅ 建立虛擬環境...
+"%PYTHON_DIR%\python.exe" -m venv "%VENV_DIR%"
+call "%VENV_DIR%\Scripts\activate.bat"
+
+:: === 安裝 PyTorch (CUDA 11.8) 與 TensorFlow (GPU) ===
+echo ✅ 安裝 PyTorch & TensorFlow...
+pip install --upgrade pip
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+pip install tensorflow
+
+:: === 安裝 xformers（提升推理效率） ===
+echo ✅ 安裝 xformers...
+pip install xformers --index-url https://download.pytorch.org/whl/cu118
+
+:: === 下載與安裝 ComfyUI ===
+echo ✅ 下載 ComfyUI...
+cd /d D:\AI
+git clone https://github.com/comfyanonymous/ComfyUI.git ComfyUI
+cd ComfyUI
+call "%VENV_DIR%\Scripts\activate.bat"
+pip install -r requirements.txt
+
+:: === 安裝 ComfyUI 插件節點 ===
+echo ✅ 安裝 ComfyUI plugins...
+cd "%COMFY_DIR%\custom_nodes"
+git clone https://github.com/Fannovel16/comfyui_controlnet_aux.git
+pip install -r comfyui_controlnet_aux/requirements.txt
+
+git clone https://github.com/Kosinkadink/ComfyUI-Advanced-ControlNet.git
+
+git clone https://github.com/ltdrdata/ComfyUI-Manager.git
+
+:: === 自動下載 SD1.5 模型 ===
+echo ✅ 下載 SD1.5 模型到 checkpoints...
+curl -L -o "%CHECKPOINT_DIR%\v1-5-pruned-emaonly.ckpt" https://huggingface.co/runwayml/stable-diffusion-v1-5/resolve/main/v1-5-pruned-emaonly.ckpt
+
+:: === 設定 TEMP 與快取重定向 ===
+echo ✅ 設定 TEMP、PyTorch 快取與模型路徑...
+setx TEMP "%TEMP_DIR%" /M
+setx TMP "%TEMP_DIR%" /M
+setx TORCH_HOME "%MODEL_DIR%\torch_cache" /M
+
+:: === 建立輸出與緩存目錄 ===
+mkdir "%COMFY_DIR%\output"
+mkdir "%COMFY_DIR%\temp"
+
+:: === 產出 GPU 測試腳本 gpu_test.py ===
+echo ✅ 產出 gpu_test.py...
+echo import torch> gpu_test.py
+echo print("torch.cuda.is_available():", torch.cuda.is_available())>> gpu_test.py
+echo print("cuDNN available:", torch.backends.cudnn.is_available())>> gpu_test.py
+echo import tensorflow as tf>> gpu_test.py
+echo print("tf.config.list_physical_devices:", tf.config.list_physical_devices('GPU'))>> gpu_test.py
+
+:: === 執行測試 ===
+echo ✅ 啟動 GPU 測試...
+python gpu_test.py
+
+:: === 清理報告腳本 ===
+echo ✅ 產出 cleanup_report.bat...
+echo @echo off> cleanup_report.bat
+echo echo 前磁碟空間：>> cleanup_report.bat
+echo wmic logicaldisk get size,freespace,caption>> cleanup_report.bat
+echo echo 清理 ComfyUI 快取與 TEMP...>> cleanup_report.bat
+echo del /f /q "%COMFY_DIR%\output\*.*">> cleanup_report.bat
+echo del /f /q "%COMFY_DIR%\temp\*.*">> cleanup_report.bat
+echo del /f /q "%TEMP_DIR%\*.*">> cleanup_report.bat
+echo echo 後磁碟空間：>> cleanup_report.bat
+echo wmic logicaldisk get size,freespace,caption>> cleanup_report.bat
+
+:: === 結束提示 ===
+echo ✅ 全部安裝完成！
+echo 🔧 執行 cleanup_report.bat 可清快取並觀察磁碟變化
+pause
+exit

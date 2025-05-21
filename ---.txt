@@ -1,0 +1,232 @@
+---
+
+## ✅ **Version 3 Setup – 前置清理三步走**
+
+### 🥇 第一步：卸载旧程序和无用组件
+
+**目标**：卸载你不再需要的旧程序（包括 AI 相关软件旧版本如 CUDA Toolkit、Python、ComfyUI、ET、Blender、Adobe、Arc 等）。
+
+#### ⛳ 操作步骤：
+
+1. **打开控制面板** → “程序和功能”。
+2. 找出以下类型的软件逐一卸载：
+
+   * 旧版 Python（3.10 以下的除非你有其他依赖）
+   * CUDA Toolkit、cuDNN、NVIDIA SDK（旧版本）
+   * Adobe 全家桶（如非必须）
+   * ET、Blender、ComfyUI、Arc（之前版本）
+3. 若你不确定哪些版本需要保留，我可以为你生成一个 PowerShell 脚本来列出所有安装的软件，供你筛选。
+
+> ✅ 提示：建议只保留操作系统、驱动、常用浏览器与防病毒软件。
+
+---
+
+### 🥈 第二步：彻底清理残留（包含注册表、缓存、孤立文件夹）
+
+**目标**：将卸载后遗留的系统垃圾文件、注册表信息、隐藏文件一并清理干净。
+
+#### ⛳ 推荐工具清单（任选其一或组合）：
+
+1. **Revo Uninstaller Portable**（深度卸载 + 注册表清理）
+2. **HiBit Uninstaller**
+3. **BleachBit**（开源，适合清理系统缓存）
+4. **Wise Disk Cleaner + Wise Registry Cleaner**
+
+#### ⛳ 操作要点：
+
+* 启动清理工具，逐个扫描并清理软件残留。
+* 清除：
+
+  * `C:\Program Files\` 和 `C:\Program Files (x86)\` 下相关残留目录；
+  * `%APPDATA%`, `%LOCALAPPDATA%` 中旧软件配置；
+  * 注册表中 `HKCU\Software\` 和 `HKLM\Software\` 中相应键值。
+
+> ✅ 建议先备份注册表或创建系统还原点再进行清理操作。
+
+---
+
+### 🥉 第三步：准备干净的 IonStore 环境
+
+**目标**：建立一个干净的、结构化的 D:\AIPlatform\ 文件体系，为 Version 3 环境做好准备。
+
+#### ⛳ 建议路径结构（D盘为主）：
+
+```plaintext
+D:\AIPlatform\
+│
+├── env\                ← Conda/Python虚拟环境目录
+├── models\             ← 放SD、LLM模型
+├── tools\              ← Aria2、ffmpeg、7zip 等工具
+├── ComfyUI\
+├── SDWebUI\
+├── assets\             ← 图像、视频、训练数据等
+├── archive\            ← 老项目或压缩包
+└── logs\               ← 自动执行脚本日志
+```
+
+#### ⛳ 准备工作：
+
+* 格式化清理后建立此结构；
+* 后续安装所有程序都默认放在 D:\AIPlatform 内；
+* 保持路径简洁无中文空格；
+* 可设定 `PYTHONUSERBASE`, `COMFYUI_PATH`, `MODELS_DIR` 等环境变量（后续我会帮你配置）。
+
+---
+
+## 🔄 补充：是否要我生成以下内容？
+
+* ✅ 批量卸载旧程序的 PowerShell 脚本
+* ✅ 注册表清理前备份工具下载包
+* ✅ 文件夹结构搭建的 `.bat` 文件
+* ✅ 下一步：安装 CUDA Toolkit + Python 环境的完整脚本
+
+---
+
+你先确认下今晚是否就要清完并搭建好结构，我可以立即生成你要的脚本文件。如果你有一些程序名称或者路径要提供，也请告诉我，我来整合到清理脚本里。
+
+你这个错误信息表明：系统在尝试卸载 Canva 时，**找不到卸载程序的执行文件 `Uninstall Canva.exe`**。这通常是因为：
+
+* 程序目录被手动删除或清理过；
+* 卸载信息残留在系统注册表中，但实际文件已不存在。
+
+---
+
+## ✅ 解决方案：强制清除残留应用的方法如下
+
+### 方法一：使用 Revo Uninstaller Portable 强力卸载（推荐）
+
+1. 下载 **Revo Uninstaller Portable**（免安装版）：
+
+   * 官网：[https://www.revouninstaller.com](https://www.revouninstaller.com/revo-uninstaller-free-download/)
+2. 打开软件 → 找到 **Canva** → 选择**强制卸载（Forced Uninstall）**。
+3. Revo 会扫描注册表与残留文件，删除所有遗留痕迹。
+
+---
+
+### 方法二：手动清除（适合经验用户）
+
+#### 1. 删除安装目录：
+
+手动删除：
+
+```plaintext
+C:\Users\user\AppData\Local\Programs\Canva\
+```
+
+#### 2. 删除注册表项（谨慎）：
+
+打开注册表编辑器 `regedit`，定位以下路径：
+
+```plaintext
+HKEY_CURRENT_USER\Software\Canva
+HKEY_LOCAL_MACHINE\SOFTWARE\Canva
+```
+
+如果存在，对应右键删除。
+
+#### 3. 清理应用列表残影（可选）：
+
+这个步骤可以通过命令行进行：
+
+```powershell
+Get-WmiObject -Class Win32_Product | Where-Object { $_.Name -like "*Canva*" } | ForEach-Object { $_.Uninstall() }
+```
+
+> ⚠️ **注意：`Win32_Product` 会触发所有程序的重配置，可能导致副作用。请谨慎使用。**
+
+---
+
+### 方法三：使用 `HiBit Uninstaller`
+
+也支持“找不到原路径”情况下的**强制清理已残缺的卸载项**。
+
+---
+
+### ✅ 你接下来可以做的事
+
+1. 选择 **Revo Uninstaller Portable** 或我可以帮你打包几个清理工具；
+2. 清掉这些卸载失败的软件；
+3. 执行系统缓存清理和注册表清理；
+4. 进行 Version 3 的 AI 环境搭建。
+
+---
+
+📦 如果你要，我可以直接为你：
+
+* 提供打包清理工具合集下载链接；
+* 自动执行 `.bat` 脚本清理路径并备份注册表；
+* 生成 PowerShell 清理残影脚本。
+
+✅ 已为你生成：
+
+### 🧰 清理工具包内容：
+
+1. `ForceRemove_Canva.bat`：强制删除 Canva 相关残留文件与注册表的脚本（需右键“以管理员身份运行”）
+2. `Tool_ReadMe.txt`：说明文档（含 Revo / HiBit / BleachBit 使用说明与清理建议）
+
+📦 下载压缩包：
+👉 [點此下載 CanvaCleanup\_Kit.zip](sandbox:/mnt/data/CanvaCleanup_Kit.zip)
+
+---
+
+### 🔧 下一步建议：
+
+* 如果你还没下载 Revo / HiBit / BleachBit 工具，我可以帮你准备一个**直接可用的工具下载合集包（中文界面）**；
+* 或继续开始 Version 3 环境第二阶段（系统缓存清扫 + D盘结构重建）；
+
+请告诉我你要：
+
+1. 工具下载包（含 Revo、HiBit、BleachBit 可执行文件）
+2. Version 3 环境第二阶段
+3. 继续清理其他卸载失败的软件（如 Astrill 或 Adobe）
+
+这个所谓的：
+
+> **Definition Update for Microsoft Office 2010 (KB3115475) 32-bit Edition**
+
+是一个**过时的 Office 2010 安全更新补丁（定义更新）**，基本没有任何现代用途。你可以**安全移除**它，尤其是在以下情况下：
+
+* 你不再使用 Microsoft Office 2010；
+* 或者你已转用 Office 365 / Office 2021；
+* 并且你想彻底清空老旧系统组件，为 AI Platform 腾空间。
+
+---
+
+## ✅ 卸载方法一：通过控制面板手动操作（推荐）
+
+1. 打开「**控制面板**」→「程序」→「查看已安装的更新」；
+2. 在右上角搜索框输入：`KB3115475`；
+3. 找到这个更新，右键点击 **卸载**；
+4. 重新启动系统后，彻底清除即可。
+
+---
+
+## ❗ 如果无法手动卸载（报错或灰色）：
+
+你可以使用 **Windows Update Standalone Installer** 强制移除：
+
+### 方法二：命令行强制卸载
+
+按下 `Win + X` → 打开 **终端（管理员）**，输入以下命令：
+
+```powershell
+wusa /uninstall /kb:3115475 /quiet /norestart
+```
+
+这条命令会调用 Windows Update 卸载程序，静默删除该补丁。
+
+---
+
+## 🔄 补充提示
+
+* 卸载成功后，不会影响 Office 其他功能；
+* 如果系统提示「某个组件正在使用中」，请先关闭所有 Office 应用；
+* 若你的系统已不再使用 Office 2010，建议你**彻底移除整套 Office 2010**。
+
+---
+7:10 AM 5/14/2025 bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbpozlikg
+
+是否要我为你生成一个 `.bat` 脚本用于自动执行卸载？你只需右键运行一次即可清除 KB3115475，并记录日志。需要请说“生成脚本”，我立即打包。
+
+
+

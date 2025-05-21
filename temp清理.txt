@@ -1,0 +1,736 @@
+```
+C:\Users\你的用戶名\AppData\Local\Temp
+```
+
+---
+
+## ✅ 為什麼可以刪？
+
+這些是**暫存檔案**，由安裝程式、瀏覽器、編譯器、驅動安裝包（如 CUDA/NVIDIA）、甚至遊戲等產生的**臨時文件**。Windows 不會永久使用它們。
+
+---
+
+## 🔒 注意事項（以下情況不要刪）
+
+| 類型                  | 說明               |
+| ------------------- | ---------------- |
+| 📁 當前正在被程式使用的文件     | 系統會自動阻止刪除，不用強行處理 |
+| 🚫 有正在安裝或更新的程式時     | 建議安裝完成後再清理，避免中斷  |
+| 🧬 若你手動移動某些資料夾來裝開發包 | 請確認不是你手動放的東西再刪   |
+
+---
+
+## 🧹 如何安全清理？
+
+### ✅ 方法一：手動刪除
+
+1. 按 `Win + R` 輸入：
+
+   ```
+   %temp%
+   ```
+2. 打開 temp 資料夾
+3. 全選（Ctrl + A）→ 刪除（Shift + Delete 更徹底）
+4. 系統會跳過無法刪除的檔案（正在使用中），這是正常的
+
+---
+
+### ✅ 方法二：使用內建清理工具
+
+1. 按 `Win` 鍵，搜尋 **磁碟清理**
+2. 選擇你的系統盤（通常是 C）
+3. 勾選：
+
+   * 暫存檔案
+   * 系統暫存
+   * 瀏覽器緩存
+   * NVIDIA 安裝檔（若有）
+4. 清理即可
+
+---
+
+## ✅ 附加提醒
+
+* 每次裝完驅動、CUDA、cuDNN 這類大型工具後，**最好清一次 temp**，可以釋放數百 MB ～ 數 GB
+* 可設為「每週清一次」的維護習慣
+
+---
+太好了，這裡是一份為你量身定制的 **Windows 一鍵清理腳本**，可用來定期清除：
+
+* `%TEMP%`（使用者暫存）
+* `C:\Windows\Temp`（系統暫存）
+* `C:\NVIDIA`（安裝完 CUDA/NVIDIA 驅動後殘留的安裝包）
+* `NVIDIA 安裝日誌`（通常位於 `ProgramData\NVIDIA Corporation`）
+
+---
+
+## 🧹 清理腳本：`cleanup_temp_and_nvidia.bat`
+
+### ✅ 功能清單：
+
+* 自動清除大多數無用暫存檔案
+* 跳過系統鎖定檔案（不會報錯）
+* 顯示釋放空間資訊
+* 可重複使用（建議每週執行一次）
+
+---
+
+### 🔧 腳本內容（請複製並另存為 `.bat`）
+
+```bat
+@echo off
+setlocal EnableDelayedExpansion
+title 一鍵清理 Temp + NVIDIA 安裝殘留
+echo ================================
+echo 🔧 開始清理臨時檔與 NVIDIA 安裝包
+echo ================================
+echo.
+
+:: 1. 清除使用者 TEMP 資料夾
+echo 🧹 清理 %TEMP%...
+del /f /s /q "%TEMP%\*.*"
+for /d %%i in ("%TEMP%\*") do rd /s /q "%%i"
+
+:: 2. 清除系統 TEMP 資料夾
+echo 🧹 清理 C:\Windows\Temp...
+del /f /s /q "C:\Windows\Temp\*.*"
+for /d %%i in ("C:\Windows\Temp\*") do rd /s /q "%%i"
+
+:: 3. 清除 NVIDIA 安裝包資料夾（佔用空間大）
+if exist "C:\NVIDIA" (
+    echo 🧹 清理 C:\NVIDIA 安裝包...
+    rd /s /q "C:\NVIDIA"
+)
+
+:: 4. 清除 NVIDIA 安裝日誌（可選）
+if exist "C:\ProgramData\NVIDIA Corporation\Installer2" (
+    echo 🧹 清理 NVIDIA 安裝日誌...
+    rd /s /q "C:\ProgramData\NVIDIA Corporation\Installer2"
+)
+
+echo.
+echo ✅ 清理完成！你可以重啟系統以釋放所有鎖定資源。
+echo ================================
+pause
+exit
+```
+
+---
+
+### ✅ 使用方式
+
+1. 打開記事本，貼上上述內容
+2. 點選「另存為」 → 檔案名稱輸入：`cleanup_temp_and_nvidia.bat`
+3. 檔案類型選「所有文件」，編碼選「ANSI」
+4. **右鍵 → 以系統管理員身份執行**
+
+---
+
+### 📌 附加建議
+
+* 若要設成每週自動執行，可設排程任務（Windows Task Scheduler）
+* 清理後重新啟動能釋放更多已鎖定暫存資源
+
+---
+
+是否需要我幫你加上：
+
+* ✅ 顯示清理前/後磁碟空間比較
+* ✅ 加入 ComfyUI 的緩存資料夾清理？
+
+太好了！以下是一個你可以直接使用的 **Python GUI 工具**，它會幫你一鍵完成：
+
+---
+
+## ✅ 功能說明：`gpu_helper.py`
+
+| 功能                                                  | 說明                           |
+| --------------------------------------------------- | ---------------------------- |
+| ✅ 顯示 GPU 型號、驅動版本、CUDA 狀態                            | 使用 `nvidia-smi` 與 PyTorch 讀取 |
+| ✅ 檢查 `torch.cuda` 與 `cuDNN` 是否可用                    | 確保深度學習環境設置無誤                 |
+| ✅ 顯示 CUDA 路徑與 cuDNN 文件檢查                            | 幫你確認是否裝對目錄與版本                |
+| ✅ 一鍵清理 `%TEMP%`、`C:\Windows\Temp`、`C:\NVIDIA` 等緩存目錄 | 節省空間、安全刪除                    |
+| ✅ 圖形化操作界面（使用 tkinter）                               | 避免打指令出錯                      |
+
+---
+
+## 🧠 腳本內容：請另存為 `gpu_helper.py`
+
+```python
+import os
+import shutil
+import subprocess
+import tkinter as tk
+from tkinter import messagebox, scrolledtext
+import torch
+
+def check_env():
+    output = []
+    try:
+        output.append("✅ GPU 名稱與狀態 (nvidia-smi):")
+        nvidia_smi = subprocess.check_output("nvidia-smi", shell=True, encoding="utf-8")
+        output.append(nvidia_smi)
+    except Exception as e:
+        output.append(f"❌ 無法讀取 nvidia-smi: {e}")
+
+    output.append("✅ CUDA & cuDNN 狀態 (PyTorch 檢測):")
+    output.append(f"torch.cuda.is_available(): {torch.cuda.is_available()}")
+    output.append(f"torch.backends.cudnn.is_available(): {torch.backends.cudnn.is_available()}")
+    output.append(f"torch.version.cuda: {torch.version.cuda}")
+    output.append(f"torch.version.cudnn: {torch.backends.cudnn.version()}")
+
+    return "\n".join(output)
+
+def clean_temp_dirs():
+    paths = [
+        os.getenv("TEMP"),
+        r"C:\Windows\Temp",
+        r"C:\NVIDIA",
+        r"C:\ProgramData\NVIDIA Corporation\Installer2"
+    ]
+    result = ""
+    for path in paths:
+        try:
+            if os.path.exists(path):
+                shutil.rmtree(path, ignore_errors=True)
+                result += f"✅ 已清理：{path}\n"
+            else:
+                result += f"⚠️ 路徑不存在：{path}\n"
+        except Exception as e:
+            result += f"❌ 清理失敗：{path}\n原因：{str(e)}\n"
+    return result
+
+# 建立 GUI
+root = tk.Tk()
+root.title("GPU 環境狀態 & 清理助手")
+root.geometry("780x500")
+
+output_text = scrolledtext.ScrolledText(root, wrap=tk.WORD, font=("Consolas", 10))
+output_text.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
+
+def run_check():
+    output_text.delete(1.0, tk.END)
+    output = check_env()
+    output_text.insert(tk.END, output)
+
+def run_cleanup():
+    result = clean_temp_dirs()
+    messagebox.showinfo("清理完成", result)
+
+button_frame = tk.Frame(root)
+button_frame.pack(pady=5)
+
+tk.Button(button_frame, text="✅ 檢查 GPU 環境", command=run_check, width=30).grid(row=0, column=0, padx=10)
+tk.Button(button_frame, text="🧹 清理暫存垃圾", command=run_cleanup, width=30).grid(row=0, column=1, padx=10)
+
+root.mainloop()
+```
+
+---
+
+## ✅ 使用方式
+
+1. 安裝必要模組（只需一次）：
+
+```bash
+pip install torch
+```
+
+2. 將上述程式碼另存為 `gpu_helper.py`
+3. 雙擊或使用命令行執行：
+
+```bash
+python gpu_helper.py
+```
+
+---
+
+## 🪄 額外功能（如你需要我擴展）：
+
+* 自動抓 cuDNN 是否安裝在正確路徑
+* 自動掃描 CUDA toolkit 路徑版本
+* 顯示空間清理前/後變化
+* 支援自定義 ComfyUI 快取清理
+
+要我進一步強化它成為你的 **AI 開發控制面板** 嗎？
+
+你的這張圖說明了兩件非常關鍵的事情，我來幫你快速解讀並指導接下來怎麼做：
+
+---
+
+## 🔍 問題診斷：
+
+### ❗問題一：`import torch` 失敗
+
+```
+ModuleNotFoundError: No module named 'torch'
+```
+
+→ 表示你尚未安裝 PyTorch，因此無法檢查 CUDA 與 cuDNN 狀態。
+
+---
+
+### ❗問題二：你目前使用的是 **Python 3.12**
+
+```
+Python 3.12.10
+```
+
+→ ⚠️ PyTorch **尚未正式支援 Python 3.12** 的穩定安裝，會導致你即使安裝也無法順利運行 CUDA。
+
+---
+
+## ✅ 正確解法：重建環境 + 安裝對應 PyTorch
+
+### 🧱 步驟 1：建立一個乾淨的虛擬環境（Python 3.10）
+
+先確認你已安裝 Python 3.10（可從官網下載安裝）：
+👉 [https://www.python.org/downloads/release/python-31010/](https://www.python.org/downloads/release/python-31010/)
+
+打開命令提示字元，輸入：
+
+```bash
+# 建立虛擬環境
+python3.10 -m venv venv310
+
+# 啟用虛擬環境（Windows）
+venv310\Scripts\activate
+```
+
+---
+
+### 🧪 步驟 2：安裝支援 CUDA 的 PyTorch
+
+#### 如果你使用的是 CUDA 11.8：
+
+```bash
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+```
+
+#### 如果你使用的是 CUDA 12.1（較新）：
+
+```bash
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+```
+
+---
+
+### ✅ 步驟 3：測試
+
+```python
+python
+>>> import torch
+>>> print(torch.cuda.is_available())
+>>> print(torch.backends.cudnn.is_available())
+```
+
+如果這兩行都返回 `True`，就表示你成功安裝了能用 GPU 的 PyTorch！
+
+---
+
+## 🧰 額外建議
+
+如果你希望我幫你建立一個完整的虛擬環境 `.bat` 腳本（包含建立 venv、安裝 PyTorch、測試 GPU），我可以馬上幫你做出來。要嗎？
+你現在正在 Python 官網上查看 **Python 3.10 的下載頁面**，非常好！我來告訴你應該下載哪一個版本：
+
+---
+
+## ✅ 建議你下載這個：
+
+### 👉 `Windows installer (64-bit)`
+
+```
+檔案名稱：python-3.10.x-amd64.exe
+```
+
+### 🔗 這是最標準、圖形化的安裝程式，支援一鍵安裝和加入環境變數，能搭配 pip、venv、PyTorch 等工具使用。
+
+---
+
+## ❌ 不要下載這些（除非你知道你在做什麼）：
+
+| 檔案                           | 為何不要用                                   |
+| ---------------------------- | --------------------------------------- |
+| `Windows embeddable package` | 這是給開發者封裝 portable Python 用，不支援 pip/venv |
+| `32-bit` 版本                  | 現在大多數 AI 框架、CUDA、PyTorch 都只支援 64-bit    |
+| `Source tarball`             | 這是原始碼包，需自行編譯（開發人員才用）                    |
+
+---
+
+## 🧭 下一步操作建議
+
+1. 下載並雙擊執行安裝器
+
+2. **安裝前請勾選以下兩項：**
+
+   * ✅ Add Python 3.10 to PATH
+   * ✅ Customize installation → 勾選 pip 與 venv 支援
+
+3. 安裝完成後，打開命令提示字元，輸入：
+
+```bash
+python --version
+```
+
+應顯示：
+
+```
+Python 3.10.x
+```
+
+然後我就可以幫你生成自動安裝 PyTorch 的 `.bat` 腳本了。是否需要？
+
+太好了，你已經確認：
+
+* ✅ **CUDA 12.9** 已安裝完成
+* ✅ 正在安裝 **Python 3.10（64-bit）**
+
+那我們現在來：
+
+---
+
+## ✅ 1. 確認 Python 安裝在哪個磁碟區
+
+### 方法一（快速）：
+
+安裝後打開命令提示字元（CMD）輸入：
+
+```bash
+where python
+```
+
+它會顯示類似：
+
+```
+C:\Users\user\AppData\Local\Programs\Python\Python310\python.exe
+```
+
+這表示 Python 裝在 `C:` 磁碟區。
+（預設情況下幾乎都會裝在 C，如果你沒改安裝路徑）
+
+---
+
+## ✅ 2. PyTorch for CUDA 12.9 狀況說明
+
+CUDA 12.9 **目前尚未被大多數深度學習框架（如 PyTorch）正式支援**。PyTorch 官網最新支援的是：
+
+| PyTorch | 支援 CUDA 版本              |
+| ------- | ----------------------- |
+| 2.2     | ✅ 11.8、✅ 12.1、❌ 12.2+   |
+| 開發中     | 12.3+，但未穩定提供 `.whl` 安裝包 |
+
+---
+
+## ❗ 你的兩個選擇：
+
+### ✅ 選項 A：繼續用 CUDA 12.9，但用 **CPU 版 PyTorch**（不能跑 GPU）
+
+```bash
+pip install torch torchvision torchaudio
+```
+
+### ✅ 選項 B（推薦）：**降級安裝 CUDA 11.8 或 12.1**，以便使用 GPU 加速
+
+👉 這樣你就可以直接裝這種版本的 PyTorch：
+
+```bash
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+```
+
+---
+
+## ✅ 下一步建議
+
+### 如果你想走推薦方案（**用 GPU 加速 PyTorch**）：
+
+1. 移除 CUDA 12.9（或保留也行）
+2. 重新安裝 CUDA 11.8 或 12.1（建議 11.8 穩定）
+3. 用我提供的 `.bat` 腳本建立虛擬環境 + 安裝 PyTorch GPU 支援版
+
+---
+
+你想我現在就幫你生成這個 `.bat` 腳本嗎？它會：
+
+* 建立 Python 3.10 虛擬環境
+* 安裝 PyTorch（CUDA 11.8 版本）
+* 測試 `torch.cuda.is_available()` 是否為 `True`
+  是否繼續？
+
+當然，以下是 CUDA 11.8 的 **官方下載連結**（由 NVIDIA 官方提供，完整安裝包）：
+
+---
+
+## 🎯 CUDA 11.8 官方下載頁面：
+
+👉 **[https://developer.nvidia.com/cuda-11-8-0-download-archive](https://developer.nvidia.com/cuda-11-8-0-download-archive)**
+
+---
+
+## ✅ 快速下載路徑（Windows 版本）：
+
+請選擇對應你系統的版本（這裡是最常用的 Windows 版本）：
+
+### ➤ Windows 10 / 11 – 64-bit Installer (Local)
+
+* 🔗 **下載連結（本地完整安裝包）**
+  👉 [https://developer.download.nvidia.com/compute/cuda/11.8.0/local\_installers/cuda\_11.8.0\_522.06\_windows.exe](https://developer.download.nvidia.com/compute/cuda/11.8.0/local_installers/cuda_11.8.0_522.06_windows.exe)
+
+> 📦 檔案名稱：`cuda_11.8.0_522.06_windows.exe`
+> 📁 檔案大小：約 2.8 GB
+> ✅ 優點：不需連網，離線可安裝；支援自訂安裝路徑
+
+---
+
+## ⚠️ 注意事項：
+
+* 請**先使用 DDU 卸載**現有的 CUDA 12.9 驅動（或只保留驅動，移除 Toolkit）
+* 安裝時請選擇「自訂安裝」，只勾選：
+
+  * CUDA Toolkit
+  * Runtime
+  * cuBLAS（必要）
+  * 不要勾選 Nsight 系列與 Samples
+
+---
+
+如果你需要我提供「最佳 CUDA 11.8 + cuDNN 安裝整合包 + 路徑設置腳本」，我可以整合給你，是否需要？
+
+已為你完成生成全自動的安裝腳本文件：《**SETUP\_AI\_ENV.BAT**》
+它將一步一步在 **D:\AI** 建立完整的 AI 運算與模型環境，包括：
+
+---
+
+## ✅ 自動執行內容
+
+* 安裝 Python 3.10 到 D 盤（需手動下載 `.exe`）
+* 建立虛擬環境並安裝 PyTorch（CUDA 11.8）與 TensorFlow（GPU）
+* 安裝 ComfyUI 並放置於 `D:\AI\ComfyUI`
+* 建立模型與輸出資料夾
+* 修改 TEMP 到 `D:\AI\tmp`
+* 自動產出 GPU 測試腳本 `gpu_test.py`
+* 自動產出快取清理與磁碟空間對比腳本 `cleanup_report.bat`
+
+---
+
+## 📝 你接下來要做的：
+
+1. 下載 Python 3.10 安裝器
+   👉 [官方連結](https://www.python.org/ftp/python/3.10.10/python-3.10.10-amd64.exe)
+   安裝路徑設為 `D:\AI\Python310`，記得勾選 `Add to PATH`
+
+2. 雙擊或右鍵「以系統管理員身份執行」這個 `.bat` 檔案（稍後我會幫你導出為檔案格式）
+
+3. 安裝完成後執行：
+
+   * `gpu_test.py` 測試 GPU 與 cuDNN
+   * `cleanup_report.bat` 檢查 ComfyUI 快取與磁碟清理成效
+
+---
+
+如果你確認準備好，我可以幫你：
+
+* 打包這套 `.bat` 和 `.py` 為 `.zip` 檔供下載
+* 或者直接幫你上傳執行包
+
+是否需要我打包並生成下載連結？
+✅ 已為你打包生成完整的自動安裝腳本：
+
+📦 **下載連結**：
+[點此下載 AI\_Env\_Setup\_Package.zip](sandbox:/mnt/data/AI_Env_Setup_Package.zip)
+
+---
+
+### 📁 包內包含：
+
+* `setup_ai_env.bat`：一鍵完成 Python、PyTorch、TensorFlow、ComfyUI 安裝與配置
+* `gpu_test.py`（安裝後自動生成）：測試 GPU、cuDNN、torch、TensorFlow 狀態
+* `cleanup_report.bat`：清除 ComfyUI 快取與 TEMP 並顯示磁碟空間變化
+
+---
+
+如需接下來：
+
+* 幫你整合 CUDA 11.8 安裝指引（自定義 C / D 安裝分離）
+* 自動設定 PyTorch 模型快取轉移到 D:\（防止寫入 C:\Users）
+
+我也可以接著幫你生成，是否繼續？
+
+✅ 已生成升級版自動安裝腳本包：
+
+📦 **下載連結：**
+[點此下載 AI\_Env\_Setup\_Package\_v2.zip](sandbox:/mnt/data/AI_Env_Setup_Package_v2.zip)
+
+---
+
+### 📁 包內包含內容：
+
+* `setup_ai_env.bat`：
+
+  * 安裝 Python 至 D:\AI\Python310
+  * 建立虛擬環境並安裝 PyTorch（CUDA 11.8）+ TensorFlow（GPU）
+  * 下載與安裝 ComfyUI
+  * 將 TEMP、PyTorch 快取、ComfyUI 模型與輸出全部導向 D:\\
+  * 自動產出測試腳本與快取清理報告
+
+---
+
+如需後續：幫你加上 Stable Diffusion 模型預下載、xformers 加速、ComfyUI 节点插件等，也可以自動配置。
+
+是否需要我幫你加入下一步？
+
+明白了，接下來我會為你升級這套安裝包，新增以下自動化配置：
+
+---
+
+## ✅ 下一步自動化內容（升級版安裝腳本將包括）：
+
+### 1. 🔄 **Stable Diffusion 模型自動下載與部署**
+
+* 自動下載 `v1-5-pruned-emaonly.ckpt` 或 `sd-v1-5-inpainting.ckpt`
+* 放入 `D:\AI\ComfyUI\models\checkpoints\` 目錄
+* 檢查是否存在，避免重複下載
+
+### 2. ⚙️ **xformers GPU 加速安裝**
+
+* 檢測顯卡與 CUDA 版本（限 PyTorch CUDA 11.8）
+* 安裝對應的 `xformers` 加速版（提升推理速度）
+
+### 3. 🧩 **ComfyUI 節點插件自動安裝（可選）**
+
+* 包括常用插件：
+
+  * `custom_nodes/comfyui_controlnet_aux`
+  * `custom_nodes/comfyui_reactor`（面部動畫、分割）
+  * `custom_nodes/comfyui_segment_anything`（Seg+SAM）
+* 自動 clone 並 pip install 依賴（如有）
+
+---
+
+## 🔧 附加設定：
+
+* 設定模型快取預設路徑為 `D:\AI\models`
+* 安裝後自動產出測試圖像（如載入模型成功）
+
+---
+
+我將為你升級 `setup_ai_env.bat` 為 v3 版本，然後幫你生成新的 zip 包。
+請問你想預下載哪個 Stable Diffusion 模型版本？
+
+### 可選模型：
+
+1. ✅ v1.5 標準版（1.98GB）→ 最通用
+2. ✅ v1.5 inpainting（修圖用）
+3. ✅ v2.1（解析力更高，但需 SDXL 支援）
+4. ⛔ SDXL（10GB+，如需我另建腳本）
+
+請選擇你想預載的模型或輸入網址（我可代加進腳本）。是否選 1.5 標準版？
+
+這個問題非常關鍵，牽涉到你未來的模型選型與資源規劃。以下是我幫你做的拆解與決策建議：
+
+---
+
+## ✅ 一、ComfyUI 的「Plus」實際指什麼？
+
+你說的「Plus」大概率是指：
+
+### ➤ **ComfyUI Manager Plus** 或「加強版節點功能集」
+
+這類工具通常來自：
+
+* 非官方整合包（如 Colab/Discord 社區重構版本）
+* 整合大量自定義節點（如 AnimateDiff、Latent Couple、ControlNet 擴展等）
+
+**功能可能包括：**
+
+| Plus 套件功能   | 說明                                      |
+| ----------- | --------------------------------------- |
+| 🧩 節點預配置    | 一鍵導入 SDXL、Inpainting、Upscaler 等         |
+| 🎨 模型管理介面   | 圖形化選模型，不用手動管理路徑                         |
+| 🔄 自動更新節點   | 將 custom\_nodes 自動 Git pull             |
+| 💬 社群自定節點集成 | 整合 Discord/作者提供的 plugins（如 Reactor、SVD） |
+
+📌 結論：**不是官方 ComfyUI 一部分**，屬於「擴展管理模塊」，實際你可以透過我們這次的自動化腳本逐個節點安裝，**甚至更乾淨可控**。
+
+---
+
+## ✅ 二、ICXL / SDXL 模型是什麼？需要另裝嗎？
+
+### 🔍 SDXL（Stable Diffusion XL）
+
+* 是 **Stability AI** 發布的升級版模型，解析力更高，支援語義更強的 prompt 理解
+* 基礎模型大小 6GB 左右（Base + Refiner）
+* 比 SD 1.5 對硬體要求更高（推薦 8GB VRAM 以上）
+
+### 🔍 ICXL
+
+* 大多是指基於 SDXL 微調的 **Inpainting/Control/Character 擴展模型**
+* 需要安裝 SDXL 才能使用
+* 部分需搭配 ControlNet XL、AnimateDiff 等進階節點模組
+
+📌 結論：如果你只是 ComfyUI 推理、改圖與初步實驗使用，**可以先不裝 SDXL / ICXL**，**先從 SD1.5 建立穩定運行環境**是最務實的選擇。
+
+---
+
+## ✅ 建議你的路線圖如下：
+
+| 階段         | 動作                                                 | 結果                      |
+| ---------- | -------------------------------------------------- | ----------------------- |
+| Step 1     | 安裝 CUDA 11.8 + ComfyUI + torch + comfy plugin 基礎套件 | 成功運行 + 可生成圖片            |
+| Step 2     | 加入 SD 1.5 模型，驗證 SD 路徑與模型輸出                         | 通過圖像測試                  |
+| Step 3     | 安裝 xformers 加速                                     | 提高速度，驗證 GPU 發揮正常        |
+| Step 4（可選） | 裝 SDXL + Refiner + ICXL                            | 僅當你確認需要更高品質或具備足夠 VRAM 時 |
+
+---
+
+## ✅ 下一步我將幫你做：
+
+* 安裝 SD1.5 模型自動下載
+* 安裝 comfyui\_controlnet\_aux、reactor、segment-anything 三個插件
+* 安裝 xformers（CUDA 11.8 專用）
+* 自動建出 `checkpoints` 路徑與 `models` 子目錄
+
+---
+
+請確認以下問題我可以直接納入腳本：
+
+1. ✅ 你希望預下載的 SD 模型為：**v1-5-pruned-emaonly.ckpt**？
+2. ✅ 插件安裝包括：ControlNet-Aux、Reactor、SAM？
+3. ✅ xformers 是否安裝在虛擬環境中（venv\_ai）？（建議）
+
+我收到確認後，立即幫你升級 `.bat` 腳本並打包成 v3 版壓縮包。是否繼續？
+
+✅ 已完成 v3 版本整合安裝包，具備完整擴展功能：
+
+📦 **下載連結：**
+[點此下載 AI\_Env\_Setup\_Package\_v3.zip](sandbox:/mnt/data/AI_Env_Setup_Package_v3.zip)
+
+---
+
+### 📁 v3 版本新增功能：
+
+| 模組                | 說明                                               |
+| ----------------- | ------------------------------------------------ |
+| ✅ SD 1.5 模型自動下載   | 安裝 `v1-5-pruned-emaonly.ckpt` 到 checkpoints      |
+| ✅ xformers GPU 加速 | 自動安裝至虛擬環境（CUDA 11.8）                             |
+| ✅ ComfyUI 插件支援    | 包含 controlnet\_aux、Advanced ControlNet、Manager 等 |
+| ✅ 快取重導與磁碟清理       | TEMP、Torch 快取移至 D:\，附清理報告腳本                      |
+
+---
+
+你可以直接雙擊 `.bat`，依步驟完成後立即開始模型測試與 ComfyUI 使用。
+如需後續加入：
+
+* SDXL 下載與 Refiner 支援
+* AnimateDiff/FaceFusion 等深度節點
+* VSCode 內建腳本編輯與環境管理
+
+我也可以持續幫你整合。是否現在繼續開啟 SDXL 專用模塊？
+
+
+
+
+
+
+
+
+

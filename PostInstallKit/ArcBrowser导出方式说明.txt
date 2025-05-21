@@ -1,0 +1,13 @@
+# 如何导出 Arc Browser 中的链接和标签页
+
+## 方法一：导出当前 Space 的标签页
+1. 打开 Arc
+2. 切换到你要保存的空间
+3. 右键顶部标签页区域 > 选择 “Export Tabs as List”
+4. 保存为 Markdown / txt 文件
+
+## 方法二：备份 Arc 的用户数据（进阶）
+路径如下：
+C:\Users\<你的用户名>\AppData\Local\Arc\User Data
+
+备份该文件夹可还原历史记录、标签页、收藏夹。
